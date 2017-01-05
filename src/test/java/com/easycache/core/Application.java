@@ -1,34 +1,38 @@
 package com.easycache.core;
 
+import com.easycache.core.maintainer.AccessTimeBasedCacheObjectMaintainer;
+
 public class Application {
 
-    public static void main(String[] args) {
-        Cache<Long, Foo> cache = new Cache<>(new CacheLoader<Long, Foo>() {
-            @Override
-            public Foo load(Long key) throws Exception {
-                return new Foo(key, String.format("Foo with id=%d", key));
-            }
-        }, new CacheObjectMaintainer<Long, Foo>() {
-            @Override
-            public boolean isMaintainedByCache(Foo entity, CacheObject<Foo> cacheObject, CacheMetadata cacheMetadata) {
-                return true;
-            }
-        });
-        cache.start();
+    private final Cache<Long, Foo> cache;
+
+    public Application() {
+        CacheLoader<Long, Foo> cacheLoader = key -> new Foo(key, String.format("My Foo %d", key));
+        this.cache = new Cache<>(cacheLoader, new AccessTimeBasedCacheObjectMaintainer<>(500));
+    }
+
+    public void start() {
+        this.cache.start();
+
+        // TODO start threads
 
         try {
-            Foo foo1 = cache.get(1L);
+            Foo foo1 = this.cache.get(1L);
             System.out.println(foo1);
             foo1 = null;
 
-            Foo foo2 = cache.get(2L);
+            Foo foo2 = this.cache.get(2L);
             System.out.println(foo2);
         } catch (Exception e) {
             // TODO Auto-generated catch block
             e.printStackTrace();
         }
-        cache.stop();
+        this.cache.stop();
 
         System.out.println("Exiting");
+    }
+
+    public static void main(String[] args) {
+        new Application().start();
     }
 }

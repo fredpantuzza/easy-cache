@@ -90,36 +90,36 @@ public class Cache<K, T> implements CacheMetadata {
     /**
      * Same as {@link #Cache(CacheObjectFactory, CacheLoader, CacheObjectMaintainer)}, but uses the
      * {@link DefaultCacheObjectFactory}.
-     * @param cacheLoader (mandatory) see {@link #cacheLoader}
-     * @param cacheObjectMaintainer (mandatory) see {@link #cacheObjectMaintainer}
-     * @throws IllegalArgumentException if any of the mandatory parameters is <code>null</code>
+     * @param cacheLoader (mandatory) See {@link #cacheLoader}
+     * @param cacheObjectMaintainer (mandatory) See {@link #cacheObjectMaintainer}
+     * @throws IllegalArgumentException If any of the mandatory parameters is <code>null</code>
      * @see CacheObjectMaintainer
      */
-    public Cache(CacheLoader<K, T> cacheLoader, CacheObjectMaintainer<K, T> cacheObjectManager) {
-        this(new DefaultCacheObjectFactory<>(), cacheLoader, cacheObjectManager);
+    public Cache(CacheLoader<K, T> cacheLoader, CacheObjectMaintainer<K, T> cacheObjectMaintainer) {
+        this(new DefaultCacheObjectFactory<>(), cacheLoader, cacheObjectMaintainer);
     }
 
     /**
      * Constructor.
-     * @param cacheObjectFactory (mandatory) see {@link #cacheObjectFactory}
-     * @param cacheLoader (mandatory) see {@link #cacheLoader}
-     * @param cacheObjectMaintainer (mandatory) see {@link #cacheObjectMaintainer}
-     * @throws IllegalArgumentException if any of the mandatory parameters is <code>null</code>
+     * @param cacheObjectFactory (mandatory) See {@link #cacheObjectFactory}
+     * @param cacheLoader (mandatory) See {@link #cacheLoader}
+     * @param cacheObjectMaintainer (mandatory) See {@link #cacheObjectMaintainer}
+     * @throws IllegalArgumentException If any of the mandatory parameters is <code>null</code>
      * @see CacheObjectMaintainer
      */
     public Cache(CacheObjectFactory<T> cacheObjectFactory, CacheLoader<K, T> cacheLoader,
-            CacheObjectMaintainer<K, T> cacheObjectManager) throws IllegalArgumentException {
-        if (cacheObjectFactory == null || cacheLoader == null || cacheObjectManager == null) {
+            CacheObjectMaintainer<K, T> cacheObjectMaintainer) throws IllegalArgumentException {
+        if (cacheObjectFactory == null || cacheLoader == null || cacheObjectMaintainer == null) {
             throw new IllegalArgumentException(
                     "Neither cacheObjectFactory, cacheLoader nor cacheObjectMaintainer can be null");
         }
         this.cacheObjectFactory = cacheObjectFactory;
         this.cacheLoader = cacheLoader;
-        this.cacheObjectMaintainer = cacheObjectManager;
+        this.cacheObjectMaintainer = cacheObjectMaintainer;
     }
 
     /**
-     * @return the {@link #cleanupInterval}
+     * @return The {@link #cleanupInterval}
      */
     public Long getCleanupInterval() {
         return this.cleanupInterval;
@@ -129,8 +129,8 @@ public class Cache<K, T> implements CacheMetadata {
      * Sets the {@link #cleanupInterval}.
      * <p>
      * Can only be called when the cache is not running.
-     * @param cleanupInterval new value for {@link #cleanupInterval}. Must be greater than zero
-     * @throws IllegalArgumentException if <code>cleanupInterval</code> is less or equal to zero
+     * @param cleanupInterval New value for {@link #cleanupInterval}. Must be greater than zero
+     * @throws IllegalArgumentException If <code>cleanupInterval</code> is less or equal to zero
      */
     public void setCleanupInterval(Long cleanupInterval) throws IllegalArgumentException {
         this.lock.writeLock().lock();
@@ -148,7 +148,7 @@ public class Cache<K, T> implements CacheMetadata {
     }
 
     /**
-     * @return the {@link #cacheMissBehaviour}
+     * @return The {@link #cacheMissBehaviour}
      */
     public CacheMissBehaviour getCacheMissBehaviour() {
         return this.cacheMissBehaviour;
@@ -158,8 +158,8 @@ public class Cache<K, T> implements CacheMetadata {
      * Sets the {@link #cacheMissBehaviour}.
      * <p>
      * Can only be called when the cache is not running.
-     * @param cacheMissBehaviour new value for {@link #cacheMissBehaviour}. Must not be <code>null</code>
-     * @throws IllegalArgumentException if <code>cacheMissBehaviour</code> is <code>null</code>
+     * @param cacheMissBehaviour New value for {@link #cacheMissBehaviour}. Must not be <code>null</code>
+     * @throws IllegalArgumentException If <code>cacheMissBehaviour</code> is <code>null</code>
      */
     public void setCacheMissBehaviour(CacheMissBehaviour cacheMissBehaviour) throws IllegalArgumentException {
         this.lock.writeLock().lock();
@@ -286,7 +286,8 @@ public class Cache<K, T> implements CacheMetadata {
     /**
      * Gets an entity from the cache by its key.
      * @param key Key of the desired entity
-     * @throws Exception if there was an error when loading a new entity
+     * @return The retrieved entity
+     * @throws Exception If there was an error when loading a new entity
      * @see CacheLoader
      * @see CacheMissBehaviour
      */
@@ -326,11 +327,12 @@ public class Cache<K, T> implements CacheMetadata {
     /**
      * Refresh an entity (or insert it, if not on cache already).
      * @param key Key of the entity to refresh
-     * @return refreshed entity
-     * @throws Exception if there was an error when loading a new entity
+     * @return The refreshed entity
+     * @throws Exception If there was an error when loading a new entity
      * @see CacheLoader
      */
     public T refresh(K key) throws Exception {
+        // TODO read lock?
         T loadedEntity = this.cacheLoader.load(key);
 
         this.lock.writeLock().lock();
@@ -384,6 +386,12 @@ public class Cache<K, T> implements CacheMetadata {
         }
     }
 
+    /**
+     * Remove the entities that are no longer maintained by the cache.
+     * <p>
+     * You may only call this method when holding a write-lock.
+     * @see CacheObjectMaintainer
+     */
     private void doCleanup() {
         /* Must be write-locked here (unfortunately, there is no graceful way to assert this). */
 
@@ -397,12 +405,18 @@ public class Cache<K, T> implements CacheMetadata {
         }
     }
 
+    /**
+     * @throws IllegalStateException If the cache is NOT running
+     */
     private void checkRunning() {
         if (!this.running) {
             throw new IllegalStateException("Cache is not running.");
         }
     }
 
+    /**
+     * @throws IllegalStateException If the cache is running
+     */
     private void checkNotRunning() {
         if (this.running) {
             throw new IllegalStateException("Cache is already running.");

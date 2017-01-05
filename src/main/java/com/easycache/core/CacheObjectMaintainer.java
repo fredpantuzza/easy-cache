@@ -12,7 +12,6 @@ public interface CacheObjectMaintainer<K, T> {
      * <p>
      * <b>Careful!</b> This function should not be too time expensive since it will be called several times by the
      * cache.
-     *
      * @param entity Entity being evaluated
      * @param cacheObject The object that is actually maintained by the cache
      * @param cacheMetadata Metadata from the cache
