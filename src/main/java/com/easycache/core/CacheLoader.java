@@ -6,6 +6,7 @@ package com.easycache.core;
  * @param <T> Type of the entity stored by the cache
  * @author frederico.pantuzza
  */
+@FunctionalInterface
 public interface CacheLoader<K, T> {
 
     /**

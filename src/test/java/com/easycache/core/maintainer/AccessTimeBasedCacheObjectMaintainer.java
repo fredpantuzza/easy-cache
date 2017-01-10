@@ -16,7 +16,8 @@ public class AccessTimeBasedCacheObjectMaintainer<T extends Entity> implements C
 
     /**
      * Constructor.
-     * @param maxAccessTimeElapsed Maximum elapsed time since the last access to the entity to remove it from the cache
+     * @param maxAccessTimeElapsed Maximum elapsed time since the last access to the entity to remove it from the cache,
+     *            in millis
      */
     public AccessTimeBasedCacheObjectMaintainer(int maxAccessTimeElapsed) {
         this.maxAccessTimeElapsed = maxAccessTimeElapsed;

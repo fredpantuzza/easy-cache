@@ -5,6 +5,7 @@ package com.easycache.core;
  * @param <K> Cache's key type
  * @param <T> Cache's object type
  */
+@FunctionalInterface
 public interface CacheObjectMaintainer<K, T> {
 
     /**

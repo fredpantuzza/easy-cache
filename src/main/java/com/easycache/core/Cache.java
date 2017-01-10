@@ -332,7 +332,8 @@ public class Cache<K, T> implements CacheMetadata {
      * @see CacheLoader
      */
     public T refresh(K key) throws Exception {
-        // TODO read lock?
+        // TODO is it necessary to lock here? Couldn't be the write lock cause the operation can take too long (and it
+        // isn't necessary, actually).
         T loadedEntity = this.cacheLoader.load(key);
 
         this.lock.writeLock().lock();
@@ -354,7 +355,7 @@ public class Cache<K, T> implements CacheMetadata {
             return loadedEntity;
 
         } finally {
-            this.lock.writeLock().lock();
+            this.lock.writeLock().unlock();
         }
     }
 
@@ -428,11 +429,15 @@ public class Cache<K, T> implements CacheMetadata {
      * {@link Cache#get(Object)} fails to find the desired object.
      */
     public static enum CacheMissBehaviour {
+
         /** If the object is not available (even if it was collected by GC), tries to load it. */
         LOAD_WHENEVER_NOT_AVAILABLE,
+
         /** If the object was not available before (i.e. no entry for the key), tries to load it. */
         LOAD_WHENEVER_NOT_AVAILABLE_BEFORE,
+
         /** Just return <code>null</code>. */
         DO_NOTHING
+
     }
 }

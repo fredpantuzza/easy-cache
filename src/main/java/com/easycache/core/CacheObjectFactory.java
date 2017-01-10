@@ -7,6 +7,7 @@ import java.lang.ref.ReferenceQueue;
  * @param <T> Type of entity stored by the {@link CacheObject}
  * @author frederico.pantuzza
  */
+@FunctionalInterface
 public interface CacheObjectFactory<T> {
 
     /**
